@@ -1,0 +1,8 @@
+# base
+click
+git+https://github.com/abey79/vpype#egg=vpype
+shapely
+
+# dev/test
+pytest
+black
