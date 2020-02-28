@@ -21,9 +21,11 @@ setup(
         'click',
         'vpype @ git+https://github.com/abey79/vpype.git',
         'shapely',
+        'numpy',
     ],
     entry_points='''
             [vpype.plugins]
             alien=vpype_explorations.alien:alien
+            fracture=vpype_explorations.fracture:fracture
         ''',
 )

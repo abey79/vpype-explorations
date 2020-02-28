@@ -2,6 +2,7 @@
 click
 git+https://github.com/abey79/vpype#egg=vpype
 shapely
+numpy
 
 # dev/test
 pytest
