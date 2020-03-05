@@ -3,6 +3,9 @@ click
 git+https://github.com/abey79/vpype#egg=vpype
 shapely
 numpy
+scipy
+scikit-image
+opencv-python
 
 # dev/test
 pytest

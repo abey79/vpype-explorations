@@ -18,14 +18,18 @@ setup(
     license=license,
     packages=find_packages(exclude=("examples", "tests")),
     install_requires=[
-        'click',
-        'vpype @ git+https://github.com/abey79/vpype.git',
-        'shapely',
-        'numpy',
+        "click",
+        "vpype @ git+https://github.com/abey79/vpype.git",
+        "shapely",
+        "numpy",
+        "scipy",
+        "scikit-image",
+        "opencv-python",
     ],
-    entry_points='''
+    entry_points="""
             [vpype.plugins]
             alien=vpype_explorations.alien:alien
             fracture=vpype_explorations.fracture:fracture
-        ''',
+            variablewidth=vpype_explorations.variablewidth:variablewidth
+        """,
 )
