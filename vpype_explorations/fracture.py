@@ -1,8 +1,7 @@
 import click
 import numpy as np
+from vpype import Length, LineCollection
 from vpype.decorators import generator
-from vpype.model import LineCollection
-from vpype.utils import Length
 
 
 @click.command()

@@ -8,9 +8,7 @@ from shapely.affinity import translate
 from shapely.geometry import LinearRing, Polygon, MultiLineString, LineString
 from shapely.ops import unary_union
 from skimage import measure
-from vpype.utils import Length
-from vpype.decorators import generator
-from vpype.model import LineCollection
+from vpype import Length, generator, LineCollection
 
 
 def pixel_to_half_width(

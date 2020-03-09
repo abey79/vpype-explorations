@@ -4,8 +4,7 @@ import random
 import click
 from shapely import affinity, ops
 from shapely.geometry import MultiLineString
-from vpype.model import LineCollection
-from vpype.decorators import generator
+from vpype import LineCollection, generator
 
 
 def append_maybe(item, lst):
