@@ -53,7 +53,7 @@ def create_hatch_polygon(pixel_line, pitch, pen_width, black_level, white_level)
 
     # a call to simplify is added here to reduce the number of points in the polygon and
     # optimize a bit the execution time (instead of calling linesimplify downstream)
-    return Polygon(coords).simplify(tolerance=pen_width/20)
+    return Polygon(coords).simplify(tolerance=pen_width / 20)
 
 
 def fill_polygon(p: Polygon, pen_width: float) -> MultiLineString:
@@ -80,6 +80,9 @@ def build_mask(cnt):
 
     mask = None
     for r in lr:
+        if not r.is_valid:
+            continue
+
         if mask is None:
             mask = Polygon(r)
         else:
@@ -178,15 +181,17 @@ def variablewidth(
         base_mls = base_mls.intersection(mask)
 
         # we want all boundaries, including possible holes
-        bounds_mls = unary_union([mask.boundary] + [lr for lr in mask.interiors])
+        bounds_mls = unary_union([mask.boundary] + [lr for lr in mask.interiors]).simplify(
+            tolerance=pen_width / 2
+        )
         additional_mls.append(bounds_mls)
 
         # if multiple
         additional_mls.extend(
-                bounds_mls.parallel_offset((i + 1) * pen_width, side)
-                for side in ("left", "right")
-                for i in range(outline_alpha - 1)
-            )
+            bounds_mls.parallel_offset((i + 1) * pen_width, side)
+            for side in ("left", "right")
+            for i in range(outline_alpha - 1)
+        )
 
     lc = LineCollection(base_mls)
     for mls in additional_mls:
