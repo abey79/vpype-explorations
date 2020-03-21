@@ -120,9 +120,20 @@ def build_mask(cnt):
     count=True,
     help="Increase thickness of the boundary outline (can be repeated, uses PNG transparency)",
 )
+@click.option(
+    "-i", "--invert", is_flag=True, default=False, help="Invert the image before processing"
+)
 @generator
 def variablewidth(
-    filename, scale, pitch, pen_width, black_level, white_level, delete_white, outline_alpha
+    filename,
+    scale,
+    pitch,
+    pen_width,
+    black_level,
+    white_level,
+    delete_white,
+    outline_alpha,
+    invert,
 ):
     """Documentation todo
 
@@ -133,6 +144,8 @@ def variablewidth(
     orig_img = cv2.imread(filename, cv2.IMREAD_UNCHANGED) / 255.0
     gray_img = np.average(orig_img[:, :, 0:3], axis=2)
     img = cv2.resize(np.array(gray_img, dtype=float), None, fx=scale, fy=scale)
+    if invert:
+        img = 1.0 - img
     logging.info(f"variablewidth: final image size: {img.shape[0]}x{img.shape[1]}")
 
     # load alpha layer if requested
