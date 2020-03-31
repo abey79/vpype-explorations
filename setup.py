@@ -31,5 +31,6 @@ setup(
             alien=vpype_explorations.alien:alien
             fracture=vpype_explorations.fracture:fracture
             variablewidth=vpype_explorations.variablewidth:variablewidth
+            mdgrid=vpype_explorations.mdgrid:mdgrid
         """,
 )
