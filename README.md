@@ -19,6 +19,15 @@ approach). Although it looks random, the background is based on the SARS-CoV-2 g
   <img src="examples/covid/3.jpg" width="400px" />
 </p>
 
+
+### mdgrid
+
+Random grid with random types of fills.
+
+<p align="center">
+  <img src="examples/mdgrid/1.jpg" width="600px" />
+</p>
+
 ## Installation
 
 See _vpype_'s [installation instructions](https://github.com/abey79/vpype/blob/master/INSTALL.md) for information on how
