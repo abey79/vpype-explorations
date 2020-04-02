@@ -14,7 +14,7 @@ setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     author="Antoine Beyeler",
-    url="",
+    url="https://github.com/abey79/vpype-explorations/",
     license=license,
     packages=find_packages(exclude=("examples", "tests")),
     install_requires=[
@@ -32,5 +32,7 @@ setup(
             fracture=vpype_explorations.fracture:fracture
             variablewidth=vpype_explorations.variablewidth:variablewidth
             mdgrid=vpype_explorations.mdgrid:mdgrid
+            msimage=vpype_explorations.moduleset:msimage
+            msrandom=vpype_explorations.moduleset:msrandom
         """,
 )

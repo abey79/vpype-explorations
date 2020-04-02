@@ -256,3 +256,6 @@ def mdgrid(
         vector_data.add(lc, 7 + i)
 
     return vector_data
+
+
+mdgrid.help_group = "Plugins"

@@ -1,3 +1,4 @@
+Pillow
 # base
 click
 git+https://github.com/abey79/vpype#egg=vpype

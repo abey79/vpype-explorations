@@ -5,7 +5,19 @@ My generative/plotter art explorations, packaged as [_vpype_](https://github.com
 
 ## Examples
 
-_to be completed_
+_Section in construction._
+
+### covid
+
+Made with the `msimage` command (Generative Design book's module set). Although it looks random, the background is
+based on the SARS-CoV-2 genome.
+
+<img src="examples/covid/1.jpg" width="600px" />
+
+<img src="examples/covid/2.jpg" width="600px" />
+
+<img src="examples/covid/3.jpg" width="300px" />
+<img src="examples/covid/4.jpg" width="300px" />
 
 
 ## Installation
@@ -58,7 +70,7 @@ $ source venv/bin/activate
 $ pip install --upgrade pip
 ```
 
-Install _vpype-pixelart_ and its dependencies (including _vpype_):
+Install _vpype-explorations_ and its dependencies (including _vpype_):
 
 ```bash
 $ pip install -e .
@@ -94,4 +106,5 @@ $ vpype alien --help
 
 ## License
 
+The code is available under the MIT License. The rest (images, etc.) is CC Attribution-NonCommercial-ShareAlike 4.0.
 See the [LICENSE](LICENSE) file for details.
