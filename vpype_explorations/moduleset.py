@@ -1,6 +1,8 @@
+import itertools
 import math
 from typing import Iterable, Optional, Tuple, List
 
+import axi
 import click
 import numpy as np
 from PIL import Image
@@ -23,7 +25,7 @@ MSET_CONVERSIONS = {
 
 def load_module_set(
     path: str, quantization: float
-) -> Optional[Tuple[List[LineCollection], float, float]]:
+) -> Tuple[List[LineCollection], float, float]:
     """
     Load a module set. If tiles are missing, they are created from existing tiles using
     rotation.
@@ -103,10 +105,21 @@ def render_module_set(img: np.ndarray, mset_path: str, quantization: float) -> L
     return lc
 
 
+def quantization_option(function):
+    function = click.option(
+        "-q",
+        "--quantization",
+        type=Length(),
+        default="0.1mm",
+        help="Quantization used when loading tiles (default: 0.1mm)",
+    )(function)
+    return function
+
+
 @click.command()
 @click.argument("mset", type=str)
+@quantization_option
 @click.argument("bmap", type=click.Path(exists=True))
-@click.option("-q", "--quantization", type=Length(), default="0.1mm")
 @click.option(
     "-t",
     "--threshold",
@@ -125,11 +138,12 @@ def msimage(mset, bmap, quantization, threshold):
     return render_module_set(img, mset, quantization)
 
 
-msimage.help_group = "Module Set"
+msimage.help_group = "Complex Modules"
 
 
 @click.command()
 @click.argument("mset", type=str)
+@quantization_option
 @click.option(
     "-n",
     "--size",
@@ -145,7 +159,6 @@ msimage.help_group = "Module Set"
     default=0.5,
     help="Occupancy probability ([0, 1], default: 0.5)",
 )
-@click.option("-q", "--quantization", type=Length(), default="0.1mm")
 @generator
 def msrandom(mset, size, density, quantization):
     """
@@ -156,4 +169,89 @@ def msrandom(mset, size, density, quantization):
     return render_module_set(img, mset, quantization)
 
 
-msrandom.help_group = "Module Set"
+msrandom.help_group = "Complex Modules"
+
+
+@click.command()
+@generator
+@click.argument("mset", type=str)
+@quantization_option
+@click.option("-c", "--crop-marks", is_flag=True)
+def mstiles(mset, quantization, crop_marks) -> LineCollection:
+    """
+    Create a nice representation of all the module set as it would be used by other commands.
+    """
+
+    # load modules
+    module_list, width, height = load_module_set(mset, quantization)
+
+    # parameters
+    ext_margin = 3
+    line = 1
+    int_margin = 0.5
+    tile_width = 6
+
+    border = ext_margin + line + int_margin
+    step = 2 * border + tile_width
+
+    # prepare marks
+    if crop_marks:
+        h_marks = np.array(
+            [
+                [ext_margin + 1j * border, ext_margin + line + 1j * border],
+                [step - ext_margin - line + 1j * border, step - ext_margin + 1j * border],
+                [
+                    ext_margin + 1j * (border + tile_width),
+                    ext_margin + line + 1j * (border + tile_width),
+                ],
+                [
+                    step - ext_margin - line + 1j * (border + tile_width),
+                    step - ext_margin + 1j * (border + tile_width),
+                ],
+            ],
+            dtype=complex,
+        )
+        v_marks = np.empty(shape=h_marks.shape, dtype=complex)
+        v_marks.imag = h_marks.real
+        v_marks.real = h_marks.imag
+        marks = np.concatenate([h_marks, v_marks])
+    else:
+        marks = np.array(
+            [
+                [
+                    border + 1j * border,
+                    border + tile_width + 1j * border,
+                    border + tile_width + 1j * (border + tile_width),
+                    border + 1j * (border + tile_width),
+                    border + 1j * border,
+                ]
+            ]
+        )
+
+    # render everything
+    lc = LineCollection()
+    for i, j in itertools.product(range(4), range(4)):
+        lc.extend(marks + i * step + j * 1j * step)
+        idx = i + j * 4
+        tile = LineCollection(module_list[idx])
+        tile.scale(tile_width / width, tile_width / height)
+        tile.translate(border + i * step, border + j * step)
+        lc.extend(tile)
+
+        # add title
+        lines = axi.text(MSET_SUFFIX[idx], font=axi.hershey_fonts.FUTURAL)
+        text = LineCollection()
+        for l in lines:
+            text.append([x + 1j * y for x, y in l])
+        text.scale(1 / 18, 1 / 18)
+        bounds = text.bounds()
+        text.translate(
+            border + i * step + (tile_width - bounds[2] + bounds[0]) / 2,
+            ext_margin + line / 2 + j * step,
+        )
+        lc.extend(text)
+
+    return lc
+
+
+mstiles.help_group = "Complex Modules"

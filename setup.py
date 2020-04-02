@@ -18,6 +18,7 @@ setup(
     license=license,
     packages=find_packages(exclude=("examples", "tests")),
     install_requires=[
+        "axi @ git+https://github.com/fogleman/axi",
         "click",
         "vpype @ git+https://github.com/abey79/vpype.git",
         "shapely",
@@ -34,5 +35,6 @@ setup(
             mdgrid=vpype_explorations.mdgrid:mdgrid
             msimage=vpype_explorations.moduleset:msimage
             msrandom=vpype_explorations.moduleset:msrandom
+            mstiles=vpype_explorations.moduleset:mstiles
         """,
 )
