@@ -12,13 +12,12 @@ _Section in construction._
 Made with the `msimage` command (Generative Design book's module set). Although it looks random, the background is
 based on the SARS-CoV-2 genome.
 
-<img src="examples/covid/1.jpg" width="600px" />
+<p align="center"><img src="examples/covid/1.jpg" width="800px" /></p>
 
-<img src="examples/covid/2.jpg" width="600px" />
-
-<img src="examples/covid/3.jpg" width="300px" />
-<img src="examples/covid/4.jpg" width="300px" />
-
+<p align="center">
+  <img src="examples/covid/4.jpg" width="400px" />
+  <img src="examples/covid/3.jpg" width="400px" />
+</p>
 
 ## Installation
 
