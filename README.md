@@ -9,8 +9,8 @@ _Section in construction._
 
 ### covid
 
-Made with the `msimage` command (Generative Design book's module set). Although it looks random, the background is
-based on the SARS-CoV-2 genome.
+Made with the `msimage` command ([Generative Design](http://www.generative-gestaltung.de/) book's "complex modules"
+approach). Although it looks random, the background is based on the SARS-CoV-2 genome.
 
 <p align="center"><img src="examples/covid/1.jpg" width="800px" /></p>
 
