@@ -1,6 +1,7 @@
 import itertools
 import math
-from typing import Iterable, Optional, Tuple, List
+import random
+from typing import Iterable, Tuple, List
 
 import axi
 import click
@@ -21,6 +22,25 @@ MSET_CONVERSIONS = {
     "1101": ("0111", -math.pi),
     "1110": ("0111", math.pi / 2),
 }
+# indicate if is appropriate to (randomly) swap the tile horizontally, resp. vertically.
+MSET_MIRRORS = [
+    [True, True],
+    [False, True],
+    [True, False],
+    [False, False],
+    [False, True],
+    [False, True],
+    [False, False],
+    [True, False],
+    [True, False],
+    [False, False],
+    [True, False],
+    [False, True],
+    [False, False],
+    [True, False],
+    [False, True],
+    [True, True],
+]
 
 
 def load_module_set(
@@ -90,7 +110,9 @@ def bitmap_to_module(bmap: np.ndarray) -> np.ndarray:
     return np.where(bmap, east + 2 * south + 4 * west + 8 * north, -1)
 
 
-def render_module_set(img: np.ndarray, mset_path: str, quantization: float) -> LineCollection:
+def render_module_set(
+    img: np.ndarray, mset_path: str, quantization: float, random_mirror: bool
+) -> LineCollection:
     """
     Build a LineCollection from a 2-dimension bool Numpy array and a path to a module set
     """
@@ -99,7 +121,17 @@ def render_module_set(img: np.ndarray, mset_path: str, quantization: float) -> L
     for idx, mod_id in np.ndenumerate(bitmap_to_module(img)):
         if mod_id != -1:
             mod_lc = LineCollection(modules[mod_id])
+
+            if random_mirror:
+                mod_lc.translate(-tile_w / 2, -tile_h / 2)
+                if MSET_MIRRORS[mod_id][0] and random.random() < 0.5:
+                    mod_lc.scale(-1, 1)
+                if MSET_MIRRORS[mod_id][1] and random.random() < 0.5:
+                    mod_lc.scale(1, -1)
+                mod_lc.translate(tile_w / 2, tile_h / 2)
+
             mod_lc.translate(idx[1] * tile_w, idx[0] * tile_h)
+
             lc.extend(mod_lc)
 
     return lc
@@ -112,6 +144,12 @@ def quantization_option(function):
         type=Length(),
         default="0.1mm",
         help="Quantization used when loading tiles (default: 0.1mm)",
+    )(function)
+    function = click.option(
+        "-m",
+        "--random-mirror",
+        is_flag=True,
+        help="Randomly mirror tiles in acceptable direction(s)",
     )(function)
     return function
 
@@ -128,14 +166,14 @@ def quantization_option(function):
     help="Threshold applied to the image",
 )
 @generator
-def msimage(mset, bmap, quantization, threshold):
+def msimage(mset, bmap, quantization, random_mirror, threshold):
     """
     Render a bitmap image with complex module (P.2.3.6). The input image is first converted to
     grayscale and then a threshold at 128 is applied
     """
 
     img = np.array(Image.open(bmap).convert("L")) > threshold
-    return render_module_set(img, mset, quantization)
+    return render_module_set(img, mset, quantization, random_mirror)
 
 
 msimage.help_group = "Complex Modules"
@@ -159,14 +197,20 @@ msimage.help_group = "Complex Modules"
     default=0.5,
     help="Occupancy probability ([0, 1], default: 0.5)",
 )
+@click.option("-s", "--symmetric", is_flag=True, help="Generate a symmetric pattern")
 @generator
-def msrandom(mset, size, density, quantization):
+def msrandom(mset, size, density, quantization, random_mirror, symmetric):
     """
     Render a grid with random occupancy with complex module (P.2.3.6).
     """
 
-    img = np.random.rand(size[0], size[1]) > density
-    return render_module_set(img, mset, quantization)
+    img = np.random.rand(size[1], size[0]) < density
+
+    if symmetric and size[0] > 1:
+        n = math.floor(size[0] / 2)
+        img[:, (size[0] - n) :] = img[:, (n - 1) :: -1]
+
+    return render_module_set(img, mset, quantization, random_mirror)
 
 
 msrandom.help_group = "Complex Modules"
@@ -177,7 +221,7 @@ msrandom.help_group = "Complex Modules"
 @click.argument("mset", type=str)
 @quantization_option
 @click.option("-c", "--crop-marks", is_flag=True)
-def mstiles(mset, quantization, crop_marks) -> LineCollection:
+def mstiles(mset, quantization, random_mirror, crop_marks) -> LineCollection:
     """
     Create a nice representation of all the module set as it would be used by other commands.
     """
