@@ -38,5 +38,7 @@ setup(
             msfingerprint=vpype_explorations.moduleset:msfingerprint
             mstiles=vpype_explorations.moduleset:mstiles
             fake3d=vpype_explorations.fake3d:fake3d
+            spiro=vpype_explorations.spiro:spiro
+            poly=vpype_explorations.poly:poly
         """,
 )
