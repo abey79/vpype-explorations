@@ -1,7 +1,8 @@
 import itertools
+import logging
 import math
 import random
-from typing import Iterable, Tuple, List
+from typing import Iterable, Tuple, List, Union
 
 import axi
 import click
@@ -111,8 +112,12 @@ def bitmap_to_module(bmap: np.ndarray) -> np.ndarray:
 
 
 def render_module_set(
-    img: np.ndarray, mset_path: str, quantization: float, random_mirror: bool
-) -> LineCollection:
+    img: np.ndarray,
+    mset_path: str,
+    quantization: float,
+    random_mirror: bool,
+    return_sizes: bool = False,
+) -> Union[LineCollection, Tuple[LineCollection, float, float]]:
     """
     Build a LineCollection from a 2-dimension bool Numpy array and a path to a module set
     """
@@ -134,7 +139,10 @@ def render_module_set(
 
             lc.extend(mod_lc)
 
-    return lc
+    if return_sizes:
+        return lc, tile_w, tile_h
+    else:
+        return lc
 
 
 def quantization_option(function):
@@ -145,6 +153,10 @@ def quantization_option(function):
         default="0.1mm",
         help="Quantization used when loading tiles (default: 0.1mm)",
     )(function)
+    return function
+
+
+def random_mirror_option(function):
     function = click.option(
         "-m",
         "--random-mirror",
@@ -154,9 +166,18 @@ def quantization_option(function):
     return function
 
 
+def render_text(txt: str) -> LineCollection:
+    lines = axi.text(txt, font=axi.hershey_fonts.FUTURAL)
+    text = LineCollection()
+    for line in lines:
+        text.append([x + 1j * y for x, y in line])
+    return text
+
+
 @click.command()
 @click.argument("mset", type=str)
 @quantization_option
+@random_mirror_option
 @click.argument("bmap", type=click.Path(exists=True))
 @click.option(
     "-t",
@@ -182,6 +203,7 @@ msimage.help_group = "Complex Modules"
 @click.command()
 @click.argument("mset", type=str)
 @quantization_option
+@random_mirror_option
 @click.option(
     "-n",
     "--size",
@@ -198,8 +220,9 @@ msimage.help_group = "Complex Modules"
     help="Occupancy probability ([0, 1], default: 0.5)",
 )
 @click.option("-s", "--symmetric", is_flag=True, help="Generate a symmetric pattern")
+@click.option("-f", "--fingerprint", is_flag=True, help="Generate finger print")
 @generator
-def msrandom(mset, size, density, quantization, random_mirror, symmetric):
+def msrandom(mset, size, density, quantization, random_mirror, symmetric, fingerprint):
     """
     Render a grid with random occupancy with complex module (P.2.3.6).
     """
@@ -210,10 +233,67 @@ def msrandom(mset, size, density, quantization, random_mirror, symmetric):
         n = math.floor(size[0] / 2)
         img[:, (size[0] - n) :] = img[:, (n - 1) :: -1]
 
-    return render_module_set(img, mset, quantization, random_mirror)
+    if fingerprint and random_mirror:
+        # we need to record the seed used to generate tile swaps
+        # we allow only seeds between 0 and 255
+        seed = random.randint(0, 255)
+        random.seed(seed)
+    else:
+        seed = None
+
+    lc, tile_w, tile_h = render_module_set(
+        img, mset, quantization, random_mirror, return_sizes=True
+    )
+
+    if fingerprint:
+        byte_str = "".join(f"{x:02x}" for x in np.packbits(img.flatten("C")))
+        txt = f"{size[0]}_{size[1]}_{byte_str}"
+        if seed is not None:
+            txt += f"_{seed:02x}"
+        txt_lc = render_text(txt)
+        txt_lc.scale(tile_h / 4 / 18)
+        txt_lc.translate((size[0] * tile_w - txt_lc.width()) / 2, -tile_h / 3)
+        lc.extend(txt_lc)
+
+        logging.info(f"msrandom: fingerprint = {txt}")
+
+    return lc
 
 
 msrandom.help_group = "Complex Modules"
+
+
+@click.command()
+@click.argument("mset", type=str)
+@click.argument("fingerprint", type=str)
+@quantization_option
+@generator
+def msfingerprint(mset, quantization, fingerprint):
+    """Generate geometries based on a previously generated fingerprint.
+    """
+
+    parts = fingerprint.split("_")
+    if len(parts) < 3 or len(parts) > 4:
+        logging.warning(f"msfingerprint: invalid fingerprint {fingerprint}")
+        return LineCollection()
+
+    size_x = int(parts[0])
+    size_y = int(parts[1])
+    data = bytearray.fromhex(parts[2])
+    if len(parts) == 4:
+        seed = int(parts[3], 16)
+    else:
+        seed = None
+
+    img = (np.unpackbits(np.array(data), count=size_x * size_y) == 1).reshape((size_y, size_x))
+
+    if seed is not None:
+        random.seed(seed)
+
+    return render_module_set(img, mset, quantization, random_mirror=seed is not None)
+
+
+msfingerprint.help_group = "Complex Modules"
 
 
 @click.command()
@@ -221,7 +301,7 @@ msrandom.help_group = "Complex Modules"
 @click.argument("mset", type=str)
 @quantization_option
 @click.option("-c", "--crop-marks", is_flag=True)
-def mstiles(mset, quantization, random_mirror, crop_marks) -> LineCollection:
+def mstiles(mset, quantization, crop_marks) -> LineCollection:
     """
     Create a nice representation of all the module set as it would be used by other commands.
     """
@@ -283,11 +363,8 @@ def mstiles(mset, quantization, random_mirror, crop_marks) -> LineCollection:
         lc.extend(tile)
 
         # add title
-        lines = axi.text(MSET_SUFFIX[idx], font=axi.hershey_fonts.FUTURAL)
-        text = LineCollection()
-        for l in lines:
-            text.append([x + 1j * y for x, y in l])
-        text.scale(1 / 18, 1 / 18)
+        text = render_text(MSET_SUFFIX[idx])
+        text.scale(1 / 18)
         bounds = text.bounds()
         text.translate(
             border + i * step + (tile_width - bounds[2] + bounds[0]) / 2,

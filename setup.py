@@ -35,6 +35,8 @@ setup(
             mdgrid=vpype_explorations.mdgrid:mdgrid
             msimage=vpype_explorations.moduleset:msimage
             msrandom=vpype_explorations.moduleset:msrandom
+            msfingerprint=vpype_explorations.moduleset:msfingerprint
             mstiles=vpype_explorations.moduleset:mstiles
+            fake3d=vpype_explorations.fake3d:fake3d
         """,
 )
