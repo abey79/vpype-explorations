@@ -7,7 +7,7 @@ My generative/plotter art explorations, packaged as [_vpype_](https://github.com
 
 _Section in construction._
 
-### covid
+### COVID in complex module
 
 Made with the `msimage` command ([Generative Design](http://www.generative-gestaltung.de/) book's "complex modules"
 approach). Although it looks random, the background is based on the SARS-CoV-2 genome.
@@ -27,6 +27,17 @@ Random grid with random types of fills.
 <p align="center">
   <img src="examples/mdgrid/1.jpg" width="600px" />
 </p>
+
+
+### Wheels of wheels of wheels
+
+Random 3-wheel spirograph patterns generated with the `whlrandom` command. Here, we focus on 2- to 5-fold rotationally
+symmetric curves, filtering for 'simple' ones (based on their total length).
+
+<p align="center">
+  <img src="examples/wheel_page/wheel_page.jpg" width="600px" />
+</p>
+
 
 ## Installation
 
