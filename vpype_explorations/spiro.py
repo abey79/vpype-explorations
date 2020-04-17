@@ -1,5 +1,5 @@
 import math
-from typing import Iterable
+from typing import Iterable, Tuple
 
 import click
 import numpy as np
@@ -42,7 +42,7 @@ def curvilinear_abscissa(arr):
 
 def spyro(
     template: Iterable[complex], k: int = 101, q: int = 11, d: float = 1, b: int = 1.2,
-) -> np.ndarray:
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Calculate a spirograph trajectory based on a template.
     :param template: CCW list of point of closed polygon to be used as template
@@ -50,7 +50,7 @@ def spyro(
     :param q: total number of template rotation (k and q should be prime to each other)
     :param d: distance to template shape
     :param b: generating relative radius (b = 1 cycloid)
-    :return: computed spirograph trajectory
+    :return: tuple of spirographed path and generating trajectory
     """
     # Iterate over template and interpolate as required
     template_xy = [(x.real, x.imag) for x in template]
@@ -84,17 +84,34 @@ def spyro(
     for _ in range(q):
         cur_angle = last_angle_start + delta_angle
         output_arr.append(
-            trajectory + gen_radius * (np.cos(cur_angle) + 1j * np.sin(cur_angle))
+            trajectory + gen_radius * (np.sin(cur_angle) + 1j * np.cos(cur_angle))
         )
         last_angle_start = cur_angle[-1]
 
-    return np.hstack(output_arr)
+    return np.hstack(output_arr), trajectory
 
 
 @click.command()
+@click.option("-k", "--keep", is_flag=True, help="Keep existing geometry.")
+@click.option(
+    "-t",
+    "--show-trajectory",
+    is_flag=True,
+    help="Show the trajectory of the spirograph's pivot",
+)
 @layer_processor
-def spiro(lines: LineCollection) -> LineCollection:
+def spiro(lines: LineCollection, keep: bool, show_trajectory: bool) -> LineCollection:
     """Generate a spirographic pattern around existing geometries
     """
 
-    return LineCollection([spyro(line, 101, 100, 5, 1) for line in lines])
+    new_lines = LineCollection()
+    if keep:
+        new_lines.extend(lines)
+
+    for line in lines:
+        spr, trj = spyro(line, 31, 3, 1, 3)
+        new_lines.append(spr)
+        if show_trajectory:
+            new_lines.append(trj)
+
+    return new_lines
