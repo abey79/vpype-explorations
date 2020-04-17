@@ -40,5 +40,6 @@ setup(
             fake3d=vpype_explorations.fake3d:fake3d
             spiro=vpype_explorations.spiro:spiro
             poly=vpype_explorations.poly:poly
+            fill=vpype_explorations.fill:fill
         """,
 )
