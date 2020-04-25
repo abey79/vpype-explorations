@@ -43,5 +43,6 @@ setup(
             fill=vpype_explorations.fill:fill
             whlfarris=vpype_explorations.wheels:whlfarris
             whlrandom=vpype_explorations.wheels:whlrandom
+            whlboard=vpype_explorations.wheels:whlboard
         """,
 )

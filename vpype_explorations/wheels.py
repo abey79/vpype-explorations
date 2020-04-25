@@ -1,4 +1,7 @@
-from typing import Sequence, Tuple, Optional
+import itertools
+import math
+import random
+from typing import Sequence, Tuple, Optional, Dict, Any
 
 import click
 import numpy as np
@@ -37,11 +40,16 @@ def _wheelsonwheelsonwheels(
     return np.sum(a * np.exp(1j * 2 * np.pi * (np.dot(n, t) + s)), axis=0)
 
 
-def random_symmetric() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def random_symmetric(
+    symmetry_order: Optional[int],
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     # g-fold rotational symmetry if all the pairwise differences |n_k-n_j| have g as their
     # greatest common divisor
 
-    sym = np.random.randint(2, 10)
+    if symmetry_order:
+        sym = symmetry_order
+    else:
+        sym = np.random.randint(2, 10)
     k = np.random.randint(3, 5)
     while True:
         n = np.arange(k) * sym + np.random.randint(-20, 10)
@@ -51,6 +59,29 @@ def random_symmetric() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     a = 1 + np.random.randint(-2, 2, k) / 5
     # s = np.hstack((np.zeros(k-1), np.random.rand()))
     # np.random.shuffle(s)
+    s = np.random.rand(k)
+    return n, a, s
+
+
+def random_symmetric_big(
+    symmetry_order: Optional[int],
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    # g-fold rotational symmetry if all the pairwise differences |n_k-n_j| have g as their
+    # greatest common divisor
+
+    if symmetry_order:
+        sym = symmetry_order
+    else:
+        sym = np.random.choice([2, 3, 5, 7, 11, 13])
+    k = np.random.randint(3, 5)
+    while True:
+        n = np.arange(k) * sym + np.random.randint(-30, 30)
+        n = n / np.gcd.reduce(n)
+        if np.max(np.diff(n)) > 1:
+            break
+    np.random.shuffle(n)
+    # a = 1 + np.random.randint(-2, 2, k) / 5
+    a = 1 + np.random.randint(-2, 2, k) / 5
     s = np.random.rand(k)
     return n, a, s
 
@@ -71,19 +102,27 @@ def whlfarris(count) -> LineCollection:
 whlfarris.help_group = "Plugins"
 
 
+WHL_MODES = {
+    "sym": random_symmetric,
+    "sym_big": random_symmetric_big,
+}
+
+
 @click.command()
 @click.option("-n", "--count", type=int, default=10000, help="Number of segment to generate")
-@click.option("-s", "--symmetric", is_flag=True, help="Generate symmetrical shapes only")
+@click.option("-m", "--mode", type=click.Choice(WHL_MODES.keys()), default="sym")
+@click.option("-so", "--symmetry-order", type=int)
 @click.option(
     "-ml", "--max-length", type=float, help="Limit the maximum length of the resulting path"
 )
 @generator
-def whlrandom(count, symmetric, max_length: Optional[float]) -> LineCollection:
+def whlrandom(count, mode, symmetry_order, max_length: Optional[float]) -> LineCollection:
     """Generate random 3-wheel spirograph curves."""
 
-    # TODO: implement non-symmetric version
+    func = WHL_MODES[mode]
+
     while True:
-        line = _wheelsonwheelsonwheels(count, *random_symmetric())
+        line = _wheelsonwheelsonwheels(count, *func(symmetry_order))
         if max_length is None or np.sum(np.abs(np.diff(line))) < max_length:
             break
 
@@ -91,3 +130,41 @@ def whlrandom(count, symmetric, max_length: Optional[float]) -> LineCollection:
 
 
 whlrandom.help_group = "Plugins"
+
+
+def _layout_line_collections(
+    lc_map: Dict[Any, LineCollection], col_count: int, offset: Tuple[float, float]
+) -> LineCollection:
+    lc = LineCollection()
+    for i, (key, line) in enumerate(lc_map.items()):
+        lc.append(
+            line + (i % col_count) * offset[0] + math.floor(i / col_count) * offset[1] * 1j
+        )
+
+    return lc
+
+
+@click.command()
+@click.option("-n", "--count", type=int, default=10000, help="Number of segment to generate")
+@generator
+def whlboard(count) -> LineCollection:
+    """Systematic exploration (WIP)"""
+    phase = [0, 0.25, 0.5, 0.75]
+    radius = [1, 0.75, 0.5, 0.25]
+    nn = [2, 3, 5, 7, 11, -1, -3, -5, -7]
+
+    return _layout_line_collections(
+        {
+            # str(phases): _wheelsonwheelsonwheels(count, [1, 50, -48], [1, 1 / 2, 1 / 3], phases)
+            # for phases in itertools.product(phase, phase, phase)
+            # str(r): _wheelsonwheelsonwheels(count, [1, 50, -48], r, [0, 0, 0])
+            # for r in itertools.product(radius, radius, radius)
+            str(n): _wheelsonwheelsonwheels(count, n, [1, 1, 1], [0, 0, 0])
+            for n in itertools.product(nn, nn, nn)
+        },
+        15,
+        (8, 8),
+    )
+
+
+whlboard.help_group = "Plugins"
