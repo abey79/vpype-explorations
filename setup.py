@@ -16,7 +16,7 @@ setup(
     author="Antoine Beyeler",
     url="https://github.com/abey79/vpype-explorations/",
     license=license,
-    packages=find_packages(exclude=("examples", "tests")),
+    packages=["vpype_explorations"],
     install_requires=[
         "axi @ git+https://github.com/fogleman/axi",
         "click",
