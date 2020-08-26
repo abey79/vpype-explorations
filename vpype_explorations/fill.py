@@ -61,20 +61,12 @@ def fill(
 ) -> LineCollection:
 
     new_lines = LineCollection()
-    polys = []
     for line in lines:
         if np.abs(line[0] - line[-1]) <= tolerance:
-            polys.append(Polygon([(pt.real, pt.imag) for pt in line]))
+            p = Polygon([(pt.real, pt.imag) for pt in line])
+            new_lines.extend(_generate_fill(p, pen_width))
         elif keep_open:
             new_lines.append(line)
-
-    # merge all polygons and fill the result
-    mp = unary_union(polys)
-    if mp.geom_type == "Polygon":
-        mp = [mp]
-
-    for p in mp:
-        new_lines.extend(_generate_fill(p, pen_width))
 
     return new_lines
 
