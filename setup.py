@@ -44,5 +44,7 @@ setup(
             whlfarris=vpype_explorations.wheels:whlfarris
             whlrandom=vpype_explorations.wheels:whlrandom
             whlboard=vpype_explorations.wheels:whlboard
+            circles=vpype_explorations.oldcircles:circles
+            holes=vpype_explorations.oldcircles:holes
         """,
 )
