@@ -1,20 +1,27 @@
 import click
 import numpy as np
-from vpype import Length, LineCollection
-from vpype.decorators import generator
+import vpype as vp
 
 
 @click.command()
 @click.option(
-    "-s", "--size", nargs=2, default=[10.0, 10.0], type=Length(), help="",
+    "-s",
+    "--size",
+    nargs=2,
+    default=[10.0, 10.0],
+    type=vp.LengthType(),
+    help="",
 )
 @click.option(
-    "-p", "--pitch", default=1, type=Length(), help="",
+    "-p",
+    "--pitch",
+    default=1,
+    type=vp.LengthType(),
+    help="",
 )
-@generator
+@vp.generator
 def fracture(size, pitch):
-    """
-    """
+    """"""
 
     width = size[0]
     height = size[1]
@@ -40,7 +47,7 @@ def fracture(size, pitch):
     white_stop[1:] = np.clip(white_stop[1:], a_min=white_start[:-1] + 0.05 * width, a_max=None)
 
     # generate line collection, taking care of line order and start
-    return LineCollection(
+    return vp.LineCollection(
         [np.array([0, white_start[i]]) + 1j * i * pitch for i in range(count)]
         + [np.array([width, white_stop[i]]) + 1j * i * pitch for i in range(count)]
     )

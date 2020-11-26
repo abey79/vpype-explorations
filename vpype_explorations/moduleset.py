@@ -8,7 +8,8 @@ import axi
 import click
 import numpy as np
 from PIL import Image
-from vpype import generator, read_svg, Length, LineCollection
+import vpype as vp
+
 
 MSET_SUFFIX = [f"{i:04b}" for i in range(16)]
 MSET_CONVERSIONS = {
@@ -46,7 +47,7 @@ MSET_MIRRORS = [
 
 def load_module_set(
     path: str, quantization: float
-) -> Tuple[List[LineCollection], float, float]:
+) -> Tuple[List[vp.LineCollection], float, float]:
     """
     Load a module set. If tiles are missing, they are created from existing tiles using
     rotation.
@@ -55,11 +56,8 @@ def load_module_set(
     modules = {}
     for suffix in MSET_SUFFIX:
         try:
-            modules[suffix] = read_svg(
-                f"{path}_{suffix}.svg",
-                quantization=quantization,
-                simplify=True,
-                return_size=True,
+            modules[suffix] = vp.read_svg(
+                f"{path}_{suffix}.svg", quantization=quantization, simplify=True
             )
         except FileNotFoundError:
             modules[suffix] = None
@@ -77,7 +75,7 @@ def load_module_set(
     for suffix in modules:
         if modules[suffix] is None:
             conv = MSET_CONVERSIONS[suffix]
-            lc = LineCollection(modules[conv[0]][0])
+            lc = vp.LineCollection(modules[conv[0]][0])
             lc.translate(-width / 2, -height / 2)
             lc.rotate(conv[1])
             lc.translate(width / 2, height / 2)
@@ -87,8 +85,7 @@ def load_module_set(
 
 
 def check_equality(iterator: Iterable) -> bool:
-    """Return True if all items of iterator are the same
-    """
+    """Return True if all items of iterator are the same"""
     iterator = iter(iterator)
     try:
         first = next(iterator)
@@ -117,15 +114,15 @@ def render_module_set(
     quantization: float,
     random_mirror: bool,
     return_sizes: bool = False,
-) -> Union[LineCollection, Tuple[LineCollection, float, float]]:
+) -> Union[vp.LineCollection, Tuple[vp.LineCollection, float, float]]:
     """
     Build a LineCollection from a 2-dimension bool Numpy array and a path to a module set
     """
     modules, tile_w, tile_h = load_module_set(mset_path, quantization)
-    lc = LineCollection()
+    lc = vp.LineCollection()
     for idx, mod_id in np.ndenumerate(bitmap_to_module(img)):
         if mod_id != -1:
-            mod_lc = LineCollection(modules[mod_id])
+            mod_lc = vp.LineCollection(modules[mod_id])
 
             if random_mirror:
                 mod_lc.translate(-tile_w / 2, -tile_h / 2)
@@ -149,7 +146,7 @@ def quantization_option(function):
     function = click.option(
         "-q",
         "--quantization",
-        type=Length(),
+        type=vp.LengthType(),
         default="0.1mm",
         help="Quantization used when loading tiles (default: 0.1mm)",
     )(function)
@@ -166,9 +163,9 @@ def random_mirror_option(function):
     return function
 
 
-def render_text(txt: str) -> LineCollection:
+def render_text(txt: str) -> vp.LineCollection:
     lines = axi.text(txt, font=axi.hershey_fonts.FUTURAL)
-    text = LineCollection()
+    text = vp.LineCollection()
     for line in lines:
         text.append([x + 1j * y for x, y in line])
     return text
@@ -186,7 +183,7 @@ def render_text(txt: str) -> LineCollection:
     default=128,
     help="Threshold applied to the image",
 )
-@generator
+@vp.generator
 def msimage(mset, bmap, quantization, random_mirror, threshold):
     """
     Render a bitmap image with complex module (P.2.3.6). The input image is first converted to
@@ -221,7 +218,7 @@ msimage.help_group = "Complex Modules"
 )
 @click.option("-s", "--symmetric", is_flag=True, help="Generate a symmetric pattern")
 @click.option("-f", "--fingerprint", is_flag=True, help="Generate finger print")
-@generator
+@vp.generator
 def msrandom(mset, size, density, quantization, random_mirror, symmetric, fingerprint):
     """
     Render a grid with random occupancy with complex module (P.2.3.6).
@@ -267,15 +264,14 @@ msrandom.help_group = "Complex Modules"
 @click.argument("mset", type=str)
 @click.argument("fingerprint", type=str)
 @quantization_option
-@generator
+@vp.generator
 def msfingerprint(mset, quantization, fingerprint):
-    """Generate geometries based on a previously generated fingerprint.
-    """
+    """Generate geometries based on a previously generated fingerprint."""
 
     parts = fingerprint.split("_")
     if len(parts) < 3 or len(parts) > 4:
         logging.warning(f"msfingerprint: invalid fingerprint {fingerprint}")
-        return LineCollection()
+        return vp.LineCollection()
 
     size_x = int(parts[0])
     size_y = int(parts[1])
@@ -297,11 +293,11 @@ msfingerprint.help_group = "Complex Modules"
 
 
 @click.command()
-@generator
+@vp.generator
 @click.argument("mset", type=str)
 @quantization_option
 @click.option("-c", "--crop-marks", is_flag=True)
-def mstiles(mset, quantization, crop_marks) -> LineCollection:
+def mstiles(mset, quantization, crop_marks) -> vp.LineCollection:
     """
     Create a nice representation of all the module set as it would be used by other commands.
     """
@@ -353,11 +349,11 @@ def mstiles(mset, quantization, crop_marks) -> LineCollection:
         )
 
     # render everything
-    lc = LineCollection()
+    lc = vp.LineCollection()
     for i, j in itertools.product(range(4), range(4)):
         lc.extend(marks + i * step + j * 1j * step)
         idx = i + j * 4
-        tile = LineCollection(module_list[idx])
+        tile = vp.LineCollection(module_list[idx])
         tile.scale(tile_width / width, tile_width / height)
         tile.translate(border + i * step, border + j * step)
         lc.extend(tile)

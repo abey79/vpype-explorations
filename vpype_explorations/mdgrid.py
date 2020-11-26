@@ -9,7 +9,7 @@ import numpy as np
 from shapely.affinity import rotate, translate
 from shapely.geometry import MultiLineString, Polygon
 from shapely.ops import unary_union
-from vpype import LineCollection, Length, global_processor, VectorData
+import vpype as vp
 
 RectType = Tuple[float, float, float, float]
 
@@ -25,7 +25,7 @@ def rect_to_polygon(rect: RectType) -> Polygon:
     )
 
 
-def generate_fill(rect: RectType, pen_width: float) -> LineCollection:
+def generate_fill(rect: RectType, pen_width: float) -> vp.LineCollection:
     line_count = math.ceil(rect[3] / pen_width)
 
     base_seg = np.array([pen_width / 2, rect[2] - pen_width / 2]) + rect[0]
@@ -36,12 +36,12 @@ def generate_fill(rect: RectType, pen_width: float) -> LineCollection:
         seg = base_seg + (y_start + pen_width * n) * 1j
         segs.append(seg if n % 2 == 0 else np.flip(seg))
 
-    return LineCollection([np.hstack(segs)])
+    return vp.LineCollection([np.hstack(segs)])
 
 
 def generate_gradient(
     rect: RectType, line: np.ndarray, density: float = 1.0
-) -> LineCollection:
+) -> vp.LineCollection:
     """Generate a random dots with a gradient density distribution. `density` is global average
     number of point per square pixel
     """
@@ -51,12 +51,12 @@ def generate_gradient(
         rect[1], rect[1], rect[1] + rect[3], n
     )
     lines = orig.reshape(n, 1) + line.reshape(1, len(line))
-    return LineCollection(lines)
+    return vp.LineCollection(lines)
 
 
 def generate_dot_gradient(
     rect: RectType, pen_width: float, density: float = 1.0
-) -> LineCollection:
+) -> vp.LineCollection:
     """Generate a random dots with a gradient density distribution. `density` is global average
     number of point per square pixel
     """
@@ -65,7 +65,7 @@ def generate_dot_gradient(
 
 def generate_big_dot_gradient(
     rect: RectType, pen_width: float, turns: float, density: float
-) -> LineCollection:
+) -> vp.LineCollection:
     """Generate random big dots with a gradient density distribution."""
 
     s = np.cumsum(np.flip(np.linspace(0, 1, int(20 * (turns + 1))) ** 0.5))
@@ -75,10 +75,10 @@ def generate_big_dot_gradient(
     line = r * (np.cos(t) + 1j * np.sin(t))
     lc = generate_gradient(rect, line, density)
     mls = lc.as_mls()
-    return LineCollection(mls.intersection(rect_to_polygon(rect)))
+    return vp.LineCollection(mls.intersection(rect_to_polygon(rect)))
 
 
-def generate_star(rect: RectType, line_count: int = 20) -> LineCollection:
+def generate_star(rect: RectType, line_count: int = 20) -> vp.LineCollection:
     """Generate a set of line from a random point."""
 
     orig_x = np.random.uniform(rect[0], rect[0] + rect[2])
@@ -94,10 +94,10 @@ def generate_star(rect: RectType, line_count: int = 20) -> LineCollection:
         ]
     )
 
-    return LineCollection(mls.intersection(rect_to_polygon(rect)))
+    return vp.LineCollection(mls.intersection(rect_to_polygon(rect)))
 
 
-def generate_hatch(rect: RectType) -> LineCollection:
+def generate_hatch(rect: RectType) -> vp.LineCollection:
     """Generate hatching patter with random orientation and density"""
 
     angle = np.random.uniform(0, math.pi * 2)
@@ -109,7 +109,7 @@ def generate_hatch(rect: RectType) -> LineCollection:
         rect[0] + 0.5 * rect[2],
         rect[1] + 0.5 * rect[3],
     )
-    return LineCollection(mls.intersection(rect_to_polygon(rect)))
+    return vp.LineCollection(mls.intersection(rect_to_polygon(rect)))
 
 
 def distribute_widths(n, size):
@@ -130,9 +130,9 @@ def mls_parallel_offset(mls: MultiLineString, distance: float, side: str):
 
 @click.command()
 @click.option("-r", "--seed", type=int)
-@click.option("-s", "--size", nargs=2, type=Length(), default=["10cm", "10cm"])
+@click.option("-s", "--size", nargs=2, type=vp.LengthType(), default=["10cm", "10cm"])
 @click.option("-n", "--count", nargs=2, type=int, default=[5, 5])
-@click.option("-pw", "--pen-width", type=Length(), default="0.3mm")
+@click.option("-pw", "--pen-width", type=vp.LengthType(), default="0.3mm")
 @click.option("-fg", "--fat-grid", is_flag=True, default=False)
 @click.option("-g", "--global-rate", type=click.FloatRange(0.0, 1.0), default=0.1)
 @click.option("-rf", "--rate-fill", type=click.FloatRange(0.0, 1.0), multiple=True)
@@ -140,9 +140,9 @@ def mls_parallel_offset(mls: MultiLineString, distance: float, side: str):
 @click.option("-rb", "--rate-bigdot", type=click.FloatRange(0.0, 1.0))
 @click.option("-rs", "--rate-star", type=click.FloatRange(0.0, 1.0))
 @click.option("-rh", "--rate-hatch", type=click.FloatRange(0.0, 1.0))
-@global_processor
+@vp.global_processor
 def mdgrid(
-    vector_data: VectorData,
+    document: vp.Document,
     seed: Optional[int],
     size,
     count,
@@ -155,8 +155,7 @@ def mdgrid(
     rate_star,
     rate_hatch,
 ):
-    """Create nice random grids with stuff in them.
-    """
+    """Create nice random grids with stuff in them."""
 
     if len(rate_fill) == 0 and global_rate is not None:
         rate_fill = [global_rate]
@@ -172,12 +171,12 @@ def mdgrid(
 
     # handle seed
     if seed is None:
-        seed = random.randint(0, 1e9)
+        seed = random.randint(0, int(1e9))
         logging.info(f"mdgrid: no seed provided, generating one ({seed})")
     np.random.seed(seed)
     random.seed(seed)
 
-    grid_lc = LineCollection()
+    grid_lc = vp.LineCollection()
 
     # build the grid
     col_widths = distribute_widths(count[0], size[0])
@@ -199,7 +198,7 @@ def mdgrid(
     grid_lc.extend([y * 1j + col_seps[0], y * 1j + col_seps[-1]] for y in row_seps)
 
     # implement fat grid
-    fat_grid_lc = LineCollection()
+    fat_grid_lc = vp.LineCollection()
     if fat_grid:
         mls = grid_lc.as_mls()
         fat_grid_lc.extend(
@@ -212,11 +211,11 @@ def mdgrid(
         )
 
     # generate content in each cell
-    fill_lcs = [LineCollection() for _ in range(len(rate_fill))]
-    grad_lc = LineCollection()
-    bigdot_lc = LineCollection()
-    star_lc = LineCollection()
-    hatch_lc = LineCollection()
+    fill_lcs = [vp.LineCollection() for _ in range(len(rate_fill))]
+    grad_lc = vp.LineCollection()
+    bigdot_lc = vp.LineCollection()
+    star_lc = vp.LineCollection()
+    hatch_lc = vp.LineCollection()
     for (x, y) in itertools.product(range(count[0]), range(count[1])):
         rect = (
             col_seps[x],
@@ -242,20 +241,20 @@ def mdgrid(
                 hatch_lc.extend(generate_hatch(rect))
 
     # populate vector data with layer content
-    vector_data.add(grid_lc, 1)
-    vector_data.add(fat_grid_lc, 2)
+    document.add(grid_lc, 1)
+    document.add(fat_grid_lc, 2)
 
-    vector_data.add(star_lc, 3)
-    vector_data.add(hatch_lc, 4)
+    document.add(star_lc, 3)
+    document.add(hatch_lc, 4)
 
-    vector_data.add(grad_lc, 5)
+    document.add(grad_lc, 5)
 
-    vector_data.add(bigdot_lc, 6)
+    document.add(bigdot_lc, 6)
 
     for i, lc in enumerate(fill_lcs):
-        vector_data.add(lc, 7 + i)
+        document.add(lc, 7 + i)
 
-    return vector_data
+    return document
 
 
 mdgrid.help_group = "Plugins"

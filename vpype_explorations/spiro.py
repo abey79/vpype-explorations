@@ -4,10 +4,10 @@ from typing import Iterable, Tuple
 import click
 import numpy as np
 from shapely.geometry import Polygon, LineString
-from vpype import LineCollection, layer_processor, interpolate_line
+from vpype import LineCollection, layer_processor, interpolate
 
 
-def interpolate(p0, p1, max_step):
+def interp(p0, p1, max_step):
     """Interpolate between p0 and p1 with steps close to, but smaller than, max_step, omitting
     p1
     """
@@ -19,10 +19,10 @@ def interpolate(p0, p1, max_step):
 
 
 def interpolate_polygon(poly, max_step=0.1):
-    interp = []
+    points = []
     for p1, p2 in circular_pairwise(poly):
-        interp.extend(interpolate(p1, p2, max_step))
-    return np.array(interp)
+        points.extend(interp(p1, p2, max_step))
+    return np.array(points)
 
 
 def circular_pairwise(arr):
@@ -36,12 +36,13 @@ def curvilinear_abscissa(arr):
 
     """
     return np.cumsum(
-        np.linalg.norm(np.diff(np.append(arr, [arr[0]], axis=0), axis=0), axis=1), axis=0,
+        np.linalg.norm(np.diff(np.append(arr, [arr[0]], axis=0), axis=0), axis=1),
+        axis=0,
     )
 
 
 def spyro(
-    template: Iterable[complex], k: int = 101, q: int = 11, d: float = 1, b: int = 1.2,
+    template: Iterable[complex], k: int = 101, q: int = 11, d: float = 1, b: int = 1.2
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Calculate a spirograph trajectory based on a template.
@@ -52,7 +53,7 @@ def spyro(
     :param b: generating relative radius (b = 1 cycloid)
     :return: tuple of spirographed path and generating trajectory
     """
-    # Iterate over template and interpolate as required
+    # Iterate over template and interp as required
     template_xy = [(x.real, x.imag) for x in template]
     if template_xy[0] == template_xy[-1]:
         base_shape = Polygon(template_xy)
@@ -64,8 +65,8 @@ def spyro(
     trajectory = np.array(trajectory_xy[:, 0], dtype=complex)
     trajectory.imag = trajectory_xy[:, 1]
 
-    # interpolate the trajectory
-    trajectory = interpolate_line(trajectory, step=0.1)
+    # interp the trajectory
+    trajectory = interpolate(trajectory, step=0.1)
 
     # Compute template's curvilinear abscissa
     curv_absc = np.cumsum(np.hstack([0, np.abs(np.diff(trajectory))]))
@@ -101,8 +102,7 @@ def spyro(
 )
 @layer_processor
 def spiro(lines: LineCollection, keep: bool, show_trajectory: bool) -> LineCollection:
-    """Generate a spirographic pattern around existing geometries
-    """
+    """Generate a spirographic pattern around existing geometries"""
 
     new_lines = LineCollection()
     if keep:

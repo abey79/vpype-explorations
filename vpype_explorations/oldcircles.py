@@ -1,18 +1,17 @@
 import math
 import random
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional
 
 import click
 import numpy as np
-import pytest
 from vpype import (
     LineCollection,
-    Length,
     global_processor,
-    VectorData,
+    Document,
     layer_processor,
     LayerType,
     single_to_layer_id,
+    LengthType,
 )
 
 
@@ -103,8 +102,8 @@ def circle(r: float, quantization: float) -> np.ndarray:
 
 @click.command()
 @click.argument("count", type=int)
-@click.argument("delta", type=Length())
-@click.option("-q", "--quantization", type=Length(), default="0.05mm")
+@click.argument("delta", type=LengthType())
+@click.option("-q", "--quantization", type=LengthType(), default="0.05mm")
 @click.option("-lc", "--layer-count", type=int, default=1)
 @click.option("-rl", "--random-layer", is_flag=True)
 @click.option(
@@ -113,14 +112,14 @@ def circle(r: float, quantization: float) -> np.ndarray:
 @click.option(
     "-o",
     "--offset",
-    type=Length(),
+    type=LengthType(),
     nargs=2,
     default=(0, 0),
-    help="Location of the cirles' center",
+    help="Location of the circles' center",
 )
 @global_processor
 def circles(
-    vector_data: VectorData,
+    vector_data: Document,
     count,
     delta,
     quantization,
@@ -151,7 +150,7 @@ circles.help_group = "Plug-ins"
 
 
 @click.command()
-@click.option("-hs", "--hole-size", type=Length(), default="1mm")
+@click.option("-hs", "--hole-size", type=LengthType(), default="1mm")
 @layer_processor
 def holes(lines: LineCollection, hole_size):
 

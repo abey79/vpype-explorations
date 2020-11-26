@@ -4,7 +4,7 @@ import random
 import click
 from shapely import affinity, ops
 from shapely.geometry import MultiLineString
-from vpype import LineCollection, generator
+import vpype as vp
 
 
 def append_maybe(item, lst):
@@ -21,7 +21,7 @@ def append_maybe(item, lst):
     type=int,
     help="Number of segments in X and Y direction",
 )
-@generator
+@vp.generator
 def alien(count):
     """
     Generate an alien looking glyph based on segment connecting node of a regular grid.
@@ -56,7 +56,7 @@ def alien(count):
         affinity.scale(half_mls, -1, 1, origin=(0, 0)), count[0] - 1, 0
     )
 
-    lc = LineCollection(ops.linemerge(ops.unary_union([half_mls, other_mls])))
+    lc = vp.LineCollection(ops.linemerge(ops.unary_union([half_mls, other_mls])))
 
     return lc
 

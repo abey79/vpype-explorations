@@ -3,4 +3,4 @@ begin grid -o 1.5cm 1.5cm 3 4
     scale -o 0 0 0.05 0.05
 end
 
-scale -p --to 17cm 25.7cm
+scaleto 17cm 25.7cm

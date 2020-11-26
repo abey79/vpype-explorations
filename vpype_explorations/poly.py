@@ -1,13 +1,13 @@
 import click
 import numpy as np
-from vpype import generator, LineCollection, Length
+from vpype import generator, LineCollection, LengthType
 
 
 @click.command()
 @click.option(
     "-c",
     "--coords",
-    type=Length(),
+    type=LengthType(),
     nargs=2,
     multiple=True,
     help="X and Y coordinates of the point (can be used multiple time, accepts usual units)",

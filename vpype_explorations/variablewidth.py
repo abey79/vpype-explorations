@@ -8,7 +8,7 @@ from shapely.affinity import translate
 from shapely.geometry import LinearRing, Polygon, MultiLineString, LineString
 from shapely.ops import unary_union
 from skimage import measure
-from vpype import Length, generator, LineCollection
+from vpype import LengthType, generator, LineCollection
 
 
 def pixel_to_half_width(
@@ -98,13 +98,13 @@ def build_mask(cnt):
 @click.argument("filename", type=click.Path(exists=True))
 @click.option("-s", "--scale", default=1.0, help="Scale factor to apply to the image size")
 @click.option(
-    "-p", "--pitch", default=1, type=Length(), help="Resulting size per pixel (default: 1.0)"
+    "-p", "--pitch", default=1, type=LengthType(), help="Resulting size per pixel (default: 1.0)"
 )
 @click.option(
     "-pw",
     "--pen-width",
     default="0.3mm",
-    type=Length(),
+    type=LengthType(),
     help="Stroke width of the pen (default: 0.3mm)",
 )
 @click.option(

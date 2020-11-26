@@ -4,10 +4,10 @@ import click
 import numpy as np
 from shapely.geometry import Polygon, MultiLineString
 from shapely.ops import unary_union
-from vpype import layer_processor, LineCollection, Length, as_vector
+import vpype as vp
 
 
-def _generate_fill(poly: Polygon, pen_width: float) -> LineCollection:
+def _generate_fill(poly: Polygon, pen_width: float) -> vp.LineCollection:
 
     # nasty hack because unary_union() did something weird once
     poly = Polygon(poly.exterior)
@@ -30,8 +30,8 @@ def _generate_fill(poly: Polygon, pen_width: float) -> LineCollection:
         p.buffer(-pen_width / 2)
     )
 
-    lc = LineCollection(mls)
-    lc.merge(tolerance=pen_width*5, flip=True)
+    lc = vp.LineCollection(mls)
+    lc.merge(tolerance=pen_width * 5, flip=True)
     print(p.geom_type)
 
     boundary = p.boundary
@@ -44,23 +44,27 @@ def _generate_fill(poly: Polygon, pen_width: float) -> LineCollection:
 
 @click.command()
 @click.option(
-    "-pw", "--pen-width", type=Length(), default="0.3mm", help="Pen width (default: 0.3mm)"
+    "-pw",
+    "--pen-width",
+    type=vp.LengthType(),
+    default="0.3mm",
+    help="Pen width (default: 0.3mm)",
 )
 @click.option(
     "-t",
     "--tolerance",
-    type=Length(),
+    type=vp.LengthType(),
     default="0.01mm",
     help="Max distance between start and end point to consider a path closed "
     "(default: 0.01mm)",
 )
 @click.option("-k", "--keep-open", is_flag=True, help="Keep open paths")
-@layer_processor
+@vp.layer_processor
 def fill(
-    lines: LineCollection, pen_width: float, tolerance: float, keep_open: bool
-) -> LineCollection:
+    lines: vp.LineCollection, pen_width: float, tolerance: float, keep_open: bool
+) -> vp.LineCollection:
 
-    new_lines = LineCollection()
+    new_lines = vp.LineCollection()
     polys = []
     for line in lines:
         if np.abs(line[0] - line[-1]) <= tolerance:

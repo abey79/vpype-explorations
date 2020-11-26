@@ -2,7 +2,7 @@ from typing import Union, List
 
 import click
 import numpy as np
-from vpype import global_processor, VectorData, LineCollection, LayerType
+import vpype as vp
 
 
 def _transform_line(line: np.ndarray, delta: float) -> np.ndarray:
@@ -20,12 +20,12 @@ def _transform_line(line: np.ndarray, delta: float) -> np.ndarray:
 @click.option(
     "-l",
     "--layer",
-    type=LayerType(accept_multiple=True),
+    type=vp.LayerType(accept_multiple=True),
     default="all",
     help="Target layer(s).",
 )
-@global_processor
-def fake3d(vector_data: VectorData, layer: Union[int, List[int]], delta: float):
+@vp.global_processor
+def fake3d(document: vp.Document, layer: Union[int, List[int]], delta: float):
     """
     Duplicate layers and distort them to emulate fake anaglyph 3D. The distortion works by
     mapping the unit square to a trapeze whose:
@@ -38,15 +38,15 @@ def fake3d(vector_data: VectorData, layer: Union[int, List[int]], delta: float):
     CAUTION: highly hacky plugin, use at your own risk :)
     """
 
-    layer_ids = LayerType.multiple_to_layer_ids(layer, vector_data)
+    layer_ids = vp.multiple_to_layer_ids(layer, document)
 
     for layer_id in layer_ids:
         # copy the layer
-        left_lc = LineCollection(vector_data[layer_id])
+        left_lc = vp.LineCollection(document[layer_id])
 
         # transform existing layer
-        for idx, line in enumerate(vector_data[layer_id]):
-            vector_data[layer_id].lines[idx] = _transform_line(line, delta)
+        for idx, line in enumerate(document[layer_id]):
+            document[layer_id].lines[idx] = _transform_line(line, delta)
 
         # compute data for new layer
         w = left_lc.width()
@@ -57,9 +57,9 @@ def fake3d(vector_data: VectorData, layer: Union[int, List[int]], delta: float):
         left_lc.translate(-w, 0)
         left_lc.scale(-1, 1)
 
-        vector_data[vector_data.free_id()] = left_lc
+        document[document.free_id()] = left_lc
 
-    return vector_data
+    return document
 
 
 fake3d.help_group = "Plugins"

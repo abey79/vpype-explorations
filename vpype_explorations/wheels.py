@@ -1,6 +1,5 @@
 import itertools
 import math
-import random
 from typing import Sequence, Tuple, Optional, Dict, Any
 
 import click
