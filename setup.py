@@ -20,7 +20,7 @@ setup(
     install_requires=[
         "axi @ git+https://github.com/fogleman/axi",
         "click",
-        "vpype @ git+https://github.com/abey79/vpype.git",
+        "vpype",
         "shapely",
         "numpy",
         "scipy",

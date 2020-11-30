@@ -1,7 +1,7 @@
 Pillow
 # base
 click
-git+https://github.com/abey79/vpype#egg=vpype
+vpype
 git+https://github.com/abey79/vpype-text#egg=vpype-text
 shapely
 numpy
