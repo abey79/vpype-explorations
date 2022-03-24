@@ -2,9 +2,10 @@ import math
 
 import click
 import numpy as np
-from shapely.geometry import Polygon, MultiLineString
-from shapely.ops import unary_union
 import vpype as vp
+import vpype_cli
+from shapely.geometry import LinearRing, LineString, MultiLineString, Polygon
+from shapely.ops import unary_union
 
 
 def _generate_fill(poly: Polygon, pen_width: float) -> vp.LineCollection:
@@ -46,20 +47,20 @@ def _generate_fill(poly: Polygon, pen_width: float) -> vp.LineCollection:
 @click.option(
     "-pw",
     "--pen-width",
-    type=vp.LengthType(),
+    type=vpype_cli.LengthType(),
     default="0.3mm",
     help="Pen width (default: 0.3mm)",
 )
 @click.option(
     "-t",
     "--tolerance",
-    type=vp.LengthType(),
+    type=vpype_cli.LengthType(),
     default="0.01mm",
     help="Max distance between start and end point to consider a path closed "
     "(default: 0.01mm)",
 )
 @click.option("-k", "--keep-open", is_flag=True, help="Keep open paths")
-@vp.layer_processor
+@vpype_cli.layer_processor
 def fill(
     lines: vp.LineCollection, pen_width: float, tolerance: float, keep_open: bool
 ) -> vp.LineCollection:
@@ -79,6 +80,43 @@ def fill(
 
     for p in mp:
         new_lines.extend(_generate_fill(p, pen_width))
+
+    return new_lines
+
+
+fill.help_group = "Plugins"
+
+
+@click.command()
+@click.option(
+    "-pw",
+    "--pen-width",
+    type=vpype_cli.LengthType(),
+    default="0.3mm",
+    help="Pen width (default: 0.3mm)",
+)
+@click.option(
+    "-t",
+    "--tolerance",
+    type=vpype_cli.LengthType(),
+    default="0.01mm",
+    help="Max distance between start and end point to consider a path closed "
+    "(default: 0.01mm)",
+)
+@vpype_cli.layer_processor
+def cfill(lines: vp.LineCollection, pen_width: float, tolerance: float) -> vp.LineCollection:
+    """Concentric fill."""
+    new_lines = lines.clone()
+    for line in lines:
+        new_lines.append(line)
+        if np.abs(line[0] - line[-1]) <= tolerance:
+            p = Polygon((pt.real, pt.imag) for pt in line)
+            while True:
+                p = p.buffer(-pen_width)
+                if p.is_valid and len(p.exterior.coords) > 1:
+                    new_lines.append(p.exterior)
+                else:
+                    break
 
     return new_lines
 

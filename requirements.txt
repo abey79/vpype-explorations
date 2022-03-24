@@ -2,12 +2,11 @@ Pillow
 # base
 click
 vpype
-git+https://github.com/abey79/vpype-text#egg=vpype-text
 shapely
 numpy
 scipy
 scikit-image
-opencv-python
+opencv-python-headless
 
 # dev/test
 pytest

@@ -3,8 +3,9 @@ from typing import Iterable, Tuple
 
 import click
 import numpy as np
-from shapely.geometry import Polygon, LineString
-from vpype import LineCollection, layer_processor, interpolate
+from shapely.geometry import LineString, Polygon
+from vpype import LineCollection, interpolate
+from vpype_cli import layer_processor
 
 
 def interp(p0, p1, max_step):

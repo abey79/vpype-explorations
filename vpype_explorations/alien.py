@@ -2,9 +2,10 @@ import math
 import random
 
 import click
+import vpype as vp
+import vpype_cli
 from shapely import affinity, ops
 from shapely.geometry import MultiLineString
-import vpype as vp
 
 
 def append_maybe(item, lst):
@@ -21,7 +22,7 @@ def append_maybe(item, lst):
     type=int,
     help="Number of segments in X and Y direction",
 )
-@vp.generator
+@vpype_cli.generator
 def alien(count):
     """
     Generate an alien looking glyph based on segment connecting node of a regular grid.

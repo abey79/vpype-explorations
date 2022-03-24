@@ -5,17 +5,17 @@ import cv2
 import numpy as np
 from scipy import interpolate
 from shapely.affinity import translate
-from shapely.geometry import LinearRing, Polygon, MultiLineString, LineString
+from shapely.geometry import LinearRing, LineString, MultiLineString, Polygon
 from shapely.ops import unary_union
 from skimage import measure
-from vpype import LengthType, generator, LineCollection
+from vpype import LineCollection
+from vpype_cli import LengthType, generator
 
 
 def pixel_to_half_width(
     pixel_line: np.ndarray, pitch, pen_width, black_level, white_level
 ) -> np.ndarray:
-    """ Convert pixel values to half stripe width
-    """
+    """Convert pixel values to half stripe width"""
 
     # converted_values = np.where(
     #    pixel_line < black_level, 1, 1 - pixel_line / (1 - black_level)
@@ -37,8 +37,7 @@ def pixel_to_half_width(
 
 
 def create_hatch_polygon(pixel_line, pitch, pen_width, black_level, white_level) -> Polygon:
-    """ Create the horizontal outline of a line for a given linear array of pixel
-    """
+    """Create the horizontal outline of a line for a given linear array of pixel"""
     half_width = pixel_to_half_width(pixel_line, pitch, pen_width, black_level, white_level)
 
     # ensure the polygon is not collapsed
@@ -98,7 +97,11 @@ def build_mask(cnt):
 @click.argument("filename", type=click.Path(exists=True))
 @click.option("-s", "--scale", default=1.0, help="Scale factor to apply to the image size")
 @click.option(
-    "-p", "--pitch", default=1, type=LengthType(), help="Resulting size per pixel (default: 1.0)"
+    "-p",
+    "--pitch",
+    default=1,
+    type=LengthType(),
+    help="Resulting size per pixel (default: 1.0)",
 )
 @click.option(
     "-pw",
@@ -135,9 +138,7 @@ def variablewidth(
     outline_alpha,
     invert,
 ):
-    """Documentation todo
-
-    """
+    """Documentation todo"""
 
     # load grayscale image data
     logging.info("variablewidth: loading image")

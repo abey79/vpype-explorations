@@ -1,6 +1,7 @@
 import click
 import numpy as np
 import vpype as vp
+import vpype_cli
 
 
 @click.command()
@@ -9,17 +10,17 @@ import vpype as vp
     "--size",
     nargs=2,
     default=[10.0, 10.0],
-    type=vp.LengthType(),
+    type=vpype_cli.LengthType(),
     help="",
 )
 @click.option(
     "-p",
     "--pitch",
     default=1,
-    type=vp.LengthType(),
+    type=vpype_cli.LengthType(),
     help="",
 )
-@vp.generator
+@vpype_cli.generator
 def fracture(size, pitch):
     """"""
 

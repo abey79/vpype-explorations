@@ -1,5 +1,4 @@
-from setuptools import setup, find_packages
-
+from setuptools import find_packages, setup
 
 with open("README.md") as f:
     readme = f.read()
@@ -20,12 +19,12 @@ setup(
     install_requires=[
         "axi @ git+https://github.com/fogleman/axi",
         "click",
-        "vpype",
+        "vpype[all]>=1.9",
         "shapely",
         "numpy",
         "scipy",
         "scikit-image",
-        "opencv-python",
+        "opencv-python-headless",
     ],
     entry_points="""
             [vpype.plugins]
@@ -41,6 +40,7 @@ setup(
             spiro=vpype_explorations.spiro:spiro
             poly=vpype_explorations.poly:poly
             fill=vpype_explorations.fill:fill
+            cfill=vpype_explorations.fill:cfill
             whlfarris=vpype_explorations.wheels:whlfarris
             whlrandom=vpype_explorations.wheels:whlrandom
             whlboard=vpype_explorations.wheels:whlboard

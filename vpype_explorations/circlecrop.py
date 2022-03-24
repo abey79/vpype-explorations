@@ -1,20 +1,21 @@
 import click
 import vpype as vp
+import vpype_cli
 from shapely.geometry import Polygon
 
 
 @click.command()
-@click.argument("X", type=vp.LengthType())
-@click.argument("Y", type=vp.LengthType())
-@click.argument("R", type=vp.LengthType())
+@click.argument("X", type=vpype_cli.LengthType())
+@click.argument("Y", type=vpype_cli.LengthType())
+@click.argument("R", type=vpype_cli.LengthType())
 @click.option(
     "-q",
     "--quantization",
-    type=vp.LengthType(),
+    type=vpype_cli.LengthType(),
     default="0.1mm",
     help="Quantization used for the circular area",
 )
-@vp.layer_processor
+@vpype_cli.layer_processor
 def circlecrop(lines: vp.LineCollection, x: float, y: float, r: float, quantization: float):
     """Crop to a circular area."""
 

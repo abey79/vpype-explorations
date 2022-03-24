@@ -1,17 +1,16 @@
 import math
 import random
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 import click
 import numpy as np
-from vpype import (
-    LineCollection,
-    global_processor,
-    Document,
-    layer_processor,
+from vpype import Document, LineCollection
+from vpype_cli import (
     LayerType,
-    single_to_layer_id,
     LengthType,
+    global_processor,
+    layer_processor,
+    single_to_layer_id,
 )
 
 

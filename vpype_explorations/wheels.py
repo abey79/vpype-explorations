@@ -1,10 +1,11 @@
 import itertools
 import math
-from typing import Sequence, Tuple, Optional, Dict, Any
+from typing import Any, Dict, Optional, Sequence, Tuple
 
 import click
 import numpy as np
-from vpype import generator, LineCollection
+from vpype import LineCollection
+from vpype_cli import generator
 
 
 def _wheelsonwheelsonwheels(
@@ -12,22 +13,22 @@ def _wheelsonwheelsonwheels(
 ) -> np.ndarray:
     """Implements the "wheels on wheels on wheels" geometry from Farris, 1996
 
-        Returns an array of complex as follows:
+    Returns an array of complex as follows:
 
-            z(t) = sum_k(a_k  * exp(2πi * (n_k * t + s_k))   for t in [0, 1]
+        z(t) = sum_k(a_k  * exp(2πi * (n_k * t + s_k))   for t in [0, 1]
 
-        Refs:
-        - https://linuxgazette.net/133/luana.html
-        - https://core.ac.uk/download/pdf/72850999.pdf
+    Refs:
+    - https://linuxgazette.net/133/luana.html
+    - https://core.ac.uk/download/pdf/72850999.pdf
 
-        Args:
-            k: number of point in the generated trajectory
-            n: relates to the rotation speed of each wheel
-            a: relates to the radius of each wheel
-            s: starting position of each wheel
+    Args:
+        k: number of point in the generated trajectory
+        n: relates to the rotation speed of each wheel
+        a: relates to the radius of each wheel
+        s: starting position of each wheel
 
-        Returns:
-            The generated trajectory as an array of complex number
+    Returns:
+        The generated trajectory as an array of complex number
     """
 
     n = np.array(n).reshape(len(n), 1)

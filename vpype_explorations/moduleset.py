@@ -2,14 +2,14 @@ import itertools
 import logging
 import math
 import random
-from typing import Iterable, Tuple, List, Union
+from typing import Iterable, List, Tuple, Union
 
 import axi
 import click
 import numpy as np
-from PIL import Image
 import vpype as vp
-
+import vpype_cli
+from PIL import Image
 
 MSET_SUFFIX = [f"{i:04b}" for i in range(16)]
 MSET_CONVERSIONS = {
@@ -146,7 +146,7 @@ def quantization_option(function):
     function = click.option(
         "-q",
         "--quantization",
-        type=vp.LengthType(),
+        type=vpype_cli.LengthType(),
         default="0.1mm",
         help="Quantization used when loading tiles (default: 0.1mm)",
     )(function)
@@ -183,7 +183,7 @@ def render_text(txt: str) -> vp.LineCollection:
     default=128,
     help="Threshold applied to the image",
 )
-@vp.generator
+@vpype_cli.generator
 def msimage(mset, bmap, quantization, random_mirror, threshold):
     """
     Render a bitmap image with complex module (P.2.3.6). The input image is first converted to
@@ -218,7 +218,7 @@ msimage.help_group = "Complex Modules"
 )
 @click.option("-s", "--symmetric", is_flag=True, help="Generate a symmetric pattern")
 @click.option("-f", "--fingerprint", is_flag=True, help="Generate finger print")
-@vp.generator
+@vpype_cli.generator
 def msrandom(mset, size, density, quantization, random_mirror, symmetric, fingerprint):
     """
     Render a grid with random occupancy with complex module (P.2.3.6).
@@ -264,7 +264,7 @@ msrandom.help_group = "Complex Modules"
 @click.argument("mset", type=str)
 @click.argument("fingerprint", type=str)
 @quantization_option
-@vp.generator
+@vpype_cli.generator
 def msfingerprint(mset, quantization, fingerprint):
     """Generate geometries based on a previously generated fingerprint."""
 
@@ -293,7 +293,7 @@ msfingerprint.help_group = "Complex Modules"
 
 
 @click.command()
-@vp.generator
+@vpype_cli.generator
 @click.argument("mset", type=str)
 @quantization_option
 @click.option("-c", "--crop-marks", is_flag=True)

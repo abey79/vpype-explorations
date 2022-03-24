@@ -2,14 +2,15 @@ import itertools
 import logging
 import math
 import random
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 import click
 import numpy as np
+import vpype as vp
+import vpype_cli
 from shapely.affinity import rotate, translate
 from shapely.geometry import MultiLineString, Polygon
 from shapely.ops import unary_union
-import vpype as vp
 
 RectType = Tuple[float, float, float, float]
 
@@ -130,9 +131,9 @@ def mls_parallel_offset(mls: MultiLineString, distance: float, side: str):
 
 @click.command()
 @click.option("-r", "--seed", type=int)
-@click.option("-s", "--size", nargs=2, type=vp.LengthType(), default=["10cm", "10cm"])
+@click.option("-s", "--size", nargs=2, type=vpype_cli.LengthType(), default=["10cm", "10cm"])
 @click.option("-n", "--count", nargs=2, type=int, default=[5, 5])
-@click.option("-pw", "--pen-width", type=vp.LengthType(), default="0.3mm")
+@click.option("-pw", "--pen-width", type=vpype_cli.LengthType(), default="0.3mm")
 @click.option("-fg", "--fat-grid", is_flag=True, default=False)
 @click.option("-g", "--global-rate", type=click.FloatRange(0.0, 1.0), default=0.1)
 @click.option("-rf", "--rate-fill", type=click.FloatRange(0.0, 1.0), multiple=True)
@@ -140,7 +141,7 @@ def mls_parallel_offset(mls: MultiLineString, distance: float, side: str):
 @click.option("-rb", "--rate-bigdot", type=click.FloatRange(0.0, 1.0))
 @click.option("-rs", "--rate-star", type=click.FloatRange(0.0, 1.0))
 @click.option("-rh", "--rate-hatch", type=click.FloatRange(0.0, 1.0))
-@vp.global_processor
+@vpype_cli.global_processor
 def mdgrid(
     document: vp.Document,
     seed: Optional[int],

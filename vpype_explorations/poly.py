@@ -1,6 +1,7 @@
 import click
 import numpy as np
-from vpype import generator, LineCollection, LengthType
+from vpype import LineCollection
+from vpype_cli import LengthType, generator
 
 
 @click.command()

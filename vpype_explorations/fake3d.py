@@ -1,16 +1,15 @@
-from typing import Union, List
+from typing import List, Union
 
 import click
 import numpy as np
 import vpype as vp
+import vpype_cli
 
 
 def _transform_line(line: np.ndarray, delta: float) -> np.ndarray:
     new_line = np.array(line, dtype=complex)
     new_line.imag = (
-            -delta * new_line.real
-            + new_line.imag
-            + 2 * delta * new_line.real * new_line.imag
+        -delta * new_line.real + new_line.imag + 2 * delta * new_line.real * new_line.imag
     )
     return new_line
 
@@ -20,11 +19,11 @@ def _transform_line(line: np.ndarray, delta: float) -> np.ndarray:
 @click.option(
     "-l",
     "--layer",
-    type=vp.LayerType(accept_multiple=True),
+    type=vpype_cli.LayerType(accept_multiple=True),
     default="all",
     help="Target layer(s).",
 )
-@vp.global_processor
+@vpype_cli.global_processor
 def fake3d(document: vp.Document, layer: Union[int, List[int]], delta: float):
     """
     Duplicate layers and distort them to emulate fake anaglyph 3D. The distortion works by
@@ -63,4 +62,3 @@ def fake3d(document: vp.Document, layer: Union[int, List[int]], delta: float):
 
 
 fake3d.help_group = "Plugins"
-
