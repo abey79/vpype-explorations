@@ -41,17 +41,22 @@ symmetric curves, filtering for 'simple' ones (based on their total length).
 
 ## Installation
 
-See _vpype_'s [installation instructions](https://github.com/abey79/vpype/blob/master/INSTALL.md) for information on how
+See _vpype_'s [installation instructions](https://vpype.readthedocs.io/en/latest/install.html) for information on how
 to install _vpype_.
 
 
 ### Existing _vpype_ installation
 
-Use this method if you have an existing _vpype_ installation (typically in an existing virtual environment) and you
-want to make this plug-in available. You must activate your virtual environment beforehand.
+If *vpype* was installed using pipx, use the following command:
 
 ```bash
-$ pip install git+https://github.com/abey79/vpype-explorations.git#egg=vpype-explorations
+$ pipx inject vpype git+https://github.com/abey79/vpype-explorations
+```
+
+If *vpype* was installed using pip in a virtual environment, activate the virtual environment and use the following command:
+
+```bash
+$ pip install git+https://github.com/abey79/vpype-explorations#egg=vpype-explorations
 ```
 
 Check that your install is successful:
