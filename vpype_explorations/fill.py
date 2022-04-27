@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 import math
 
 import click
 import numpy as np
 import vpype as vp
 import vpype_cli
-from shapely.geometry import LinearRing, LineString, MultiLineString, Polygon
+from shapely.geometry import MultiLineString, Polygon
 from shapely.ops import unary_union
+
+DEFAULT_PEN_WIDTH = vp.convert_length("0.3mm")
 
 
 def _generate_fill(poly: Polygon, pen_width: float) -> vp.LineCollection:
@@ -33,7 +37,6 @@ def _generate_fill(poly: Polygon, pen_width: float) -> vp.LineCollection:
 
     lc = vp.LineCollection(mls)
     lc.merge(tolerance=pen_width * 5, flip=True)
-    print(p.geom_type)
 
     boundary = p.boundary
     if boundary.geom_type == "MultiLineString":
@@ -48,8 +51,7 @@ def _generate_fill(poly: Polygon, pen_width: float) -> vp.LineCollection:
     "-pw",
     "--pen-width",
     type=vpype_cli.LengthType(),
-    default="0.3mm",
-    help="Pen width (default: 0.3mm)",
+    help="Pen width (default: current layer's pen width or 0.3mm)",
 )
 @click.option(
     "-t",
@@ -62,10 +64,16 @@ def _generate_fill(poly: Polygon, pen_width: float) -> vp.LineCollection:
 @click.option("-k", "--keep-open", is_flag=True, help="Keep open paths")
 @vpype_cli.layer_processor
 def fill(
-    lines: vp.LineCollection, pen_width: float, tolerance: float, keep_open: bool
+    lines: vp.LineCollection, pen_width: float | None, tolerance: float, keep_open: bool
 ) -> vp.LineCollection:
+    """Horizontal hatch fill.
 
-    new_lines = vp.LineCollection()
+    If `--pen-width` is not used, the layer's pen width is used reverting, if unset, to 0.3mm.
+    """
+    if pen_width is None:
+        pen_width = lines.property(vp.METADATA_FIELD_PEN_WIDTH) or DEFAULT_PEN_WIDTH
+
+    new_lines = lines.clone()
     polys = []
     for line in lines:
         if np.abs(line[0] - line[-1]) <= tolerance:
@@ -92,8 +100,7 @@ fill.help_group = "Plugins"
     "-pw",
     "--pen-width",
     type=vpype_cli.LengthType(),
-    default="0.3mm",
-    help="Pen width (default: 0.3mm)",
+    help="Pen width (default: current layer's pen width or 0.3mm)",
 )
 @click.option(
     "-t",
@@ -104,8 +111,16 @@ fill.help_group = "Plugins"
     "(default: 0.01mm)",
 )
 @vpype_cli.layer_processor
-def cfill(lines: vp.LineCollection, pen_width: float, tolerance: float) -> vp.LineCollection:
-    """Concentric fill."""
+def cfill(
+    lines: vp.LineCollection, pen_width: float | None, tolerance: float
+) -> vp.LineCollection:
+    """Concentric fill.
+
+    If `--pen-width` is not used, the layer's pen width is used reverting, if unset, to 0.3mm.
+    """
+    if pen_width is None:
+        pen_width = lines.property(vp.METADATA_FIELD_PEN_WIDTH) or DEFAULT_PEN_WIDTH
+
     new_lines = lines.clone()
     for line in lines:
         new_lines.append(line)
