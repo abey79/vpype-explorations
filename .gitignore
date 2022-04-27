@@ -136,3 +136,4 @@ dmypy.json
 vpype_history.txt
 
 .DS_Store
+/my_work
